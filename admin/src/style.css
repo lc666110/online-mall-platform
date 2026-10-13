@@ -160,10 +160,15 @@ p {
 }
 .chart-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   gap: 24px;
 }
+.chart-grid > * {
+  min-width: 0;
+}
 .chart {
+  width: 100%;
+  min-width: 0;
   height: 300px;
 }
 .toolbar {

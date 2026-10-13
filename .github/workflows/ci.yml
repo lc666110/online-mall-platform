@@ -88,3 +88,20 @@ jobs:
           python scripts/init-env.py
           docker compose config --quiet
           docker compose build
+      - name: Browser integration against Docker deployment
+        env:
+          STOREFRONT_PORT: "18088"
+          ADMIN_PORT: "18089"
+          MALL_TEST_CREDENTIALS: ${{ github.workspace }}/work/test-credentials.json
+          MALL_STOREFRONT_URL: http://127.0.0.1:18088
+          MALL_ADMIN_URL: http://127.0.0.1:18089
+        run: |
+          docker compose up -d --wait --wait-timeout 180
+          docker compose exec -T server seed
+          docker compose exec -T server wget -qO- http://127.0.0.1:8080/health
+          curl -fsS http://127.0.0.1:18088/api/v1/products > /dev/null
+          curl -fsS http://127.0.0.1:18089 > /dev/null
+          npm run test:e2e
+      - name: Stop deployment containers
+        if: always()
+        run: docker compose down

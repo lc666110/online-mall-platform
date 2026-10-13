@@ -23,7 +23,7 @@ async function load() {
 const sales = computed<EChartsOption>(() => ({
   color: ["#398265", "#c3a278"],
   tooltip: { trigger: "axis" },
-  legend: { data: ["销售额（元）", "订单数"] },
+  legend: { top: 0, data: ["销售额（元）", "订单数"] },
   grid: { left: 65, right: 40, top: 45, bottom: 35 },
   xAxis: {
     type: "category",

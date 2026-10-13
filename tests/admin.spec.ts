@@ -20,6 +20,30 @@ test("后台登录、真实统计和分类增改删", async ({ page }) => {
   await page.getByRole("button", { name: "登录工作台" }).click();
   await expect(page.getByRole("heading", { name: "经营概览" })).toBeVisible();
   await expect(page.getByText("累计销售额", { exact: true })).toBeVisible();
+  // ECharts canvas widths must not force the grid beyond the viewport.
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      )
+      .toBeTruthy();
+    await expect
+      .poll(() =>
+        page.locator(".chart canvas").evaluateAll(
+          (canvases) =>
+            canvases.length === 4 &&
+            canvases.every((canvas) => {
+              const bounds = canvas.getBoundingClientRect();
+              return bounds.width > 0 && bounds.right <= window.innerWidth;
+            }),
+        ),
+      )
+      .toBeTruthy();
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("link", { name: "分类管理" }).click();
   await page.getByRole("button", { name: "新增分类" }).click();
   const name = `浏览器分类${Date.now()}`;
