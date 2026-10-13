@@ -1,0 +1,22 @@
+{
+  "name": "online-mall-platform",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "admin"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w frontend",
+    "dev:admin": "npm run dev -w admin",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck -w frontend && npm run typecheck -w admin",
+    "build": "npm run build -w frontend && npm run build -w admin",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "prettier": "^3.9.10",
+    "vitest": "^5.0.4"
+  }
+}

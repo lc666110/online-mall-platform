@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+*.exe
+*.log
+coverage/
+playwright-report/
+test-results/
+.sdd/
+runtime/
+work/

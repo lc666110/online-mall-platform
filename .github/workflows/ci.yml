@@ -1,0 +1,90 @@
+name: mall-ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: mall-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-mysql-only
+          MYSQL_DATABASE: mall_test
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      redis:
+        image: redis:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=3s --health-retries=20
+    env:
+      MYSQL_DSN: root:ci-mysql-only@tcp(127.0.0.1:3306)/mall_test?charset=utf8mb4&parseTime=true&loc=UTC
+      REDIS_ADDR: 127.0.0.1:6379
+      JWT_SECRET: ci-only-ephemeral-signing-secret-32-plus-characters
+      ADMIN_EMAIL: admin@mall.local
+      GIN_MODE: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27.x"
+          cache-dependency-path: server/go.sum
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Backend checks with real dependencies
+        working-directory: server
+        run: |
+          test -z "$(gofmt -l .)"
+          go vet ./...
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+          go test ./... -count=1
+          mkdir -p ../work
+          go build -o ../work/mall .
+      - name: Web checks
+        run: |
+          npm ci
+          npm run test
+          npm run typecheck
+          npm run build
+          npm audit --audit-level=high
+      - name: Create private ephemeral browser-test credentials
+        run: |
+          mkdir -p work
+          python - <<'PY'
+          import json,os,secrets,pathlib
+          password=secrets.token_hex(24)
+          print('::add-mask::'+password)
+          pathlib.Path('work/test-credentials.json').write_text(json.dumps({'admin_email':'admin@mall.local','admin_password':password}))
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write('ADMIN_PASSWORD='+password+'\n')
+          PY
+      - name: Browser integration against compiled applications
+        env:
+          MALL_TEST_CREDENTIALS: ${{ github.workspace }}/work/test-credentials.json
+          MALL_STOREFRONT_URL: http://127.0.0.1:8088
+          MALL_ADMIN_URL: http://127.0.0.1:8089
+        run: |
+          npx playwright install --with-deps chromium
+          (cd server && go run ./cmd/seed)
+          (cd server && ../work/mall > ../work/api.log 2>&1) &
+          node scripts/preview.mjs frontend 8088 > work/frontend.log 2>&1 &
+          node scripts/preview.mjs admin 8089 > work/admin.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/health && break || sleep 1; done
+          curl -fsS http://127.0.0.1:8080/health
+          npm run test:e2e
+      - name: Validate Compose and build production images
+        run: |
+          python scripts/init-env.py
+          docker compose config --quiet
+          docker compose build
