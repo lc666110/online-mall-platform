@@ -61,7 +61,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-local.ps1
 
 ## Docker 快速部署
 
-需要 Linux Docker Engine + Compose（或支持 Linux 容器的 Docker Desktop），Node/Go 不需要单独安装。Docker 配置已提供；本次 Windows 环境没有 Docker daemon，容器运行结果须在目标宿主验证。实际本机联调使用 MySQL/Redis 原生进程。
+需要 Linux Docker Engine + Compose（或支持 Linux 容器的 Docker Desktop），Node/Go 不需要单独安装。[GitHub CI 运行 #2](https://github.com/lc666110/online-mall-platform/actions/runs/38435468092) 已验证镜像构建、Compose 启动及 Nginx 代理后的7个浏览器业务场景。本次 Windows 环境没有 Docker daemon，本机联调使用 MySQL/Redis 原生进程；正式部署仍需在目标宿主验收自己的配置。
 
 ```sh
 # 在项目根目录
