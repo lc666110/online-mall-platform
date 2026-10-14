@@ -37,11 +37,11 @@ docs/                     API、架构、部署、验证报告
 compose.yaml
 ```
 
-## 本机已配置环境（Windows）
+## 已配置环境（Windows）
 
-本次交付目录：`D:\bbbbbbbbbbb\store\online-mall-platform`。Go、MySQL、Redis、Playwright 浏览器与下载工具位于同一 store 下的 `tools`，依赖缓存位于 `cache`，数据库和日志位于 `runtime`，备份位于 `backups`（`scripts/backup-local.ps1` 可生成新的源码与数据库备份）。现有 Node/Git 使用本机已有安装。
+本次交付目录：`store\online-mall-platform`。Go、MySQL、Redis、Playwright 浏览器与下载工具位于同一 store 下的 `tools`，依赖缓存位于 `cache`，数据库和日志位于 `runtime`，备份位于 `backups`（`scripts/backup-local.ps1` 可生成新的源码与数据库备份）。现有 Node/Git 使用本机已有安装。
 
-管理员邮箱和随机密码在 **`D:\bbbbbbbbbbb\store\runtime\local-secrets.json`** 的 `admin_email` / `admin_password`，请在本机查看，勿提交到 GitHub。新建普通用户可直接在商城注册。没有硬编码管理员密码。
+管理员邮箱和随机密码在 **store\runtime\local-secrets.json`** 的 `admin_email` / `admin_password`，请在本机查看，。新建普通用户可直接在商城注册。没有硬编码管理员密码。
 
 ```powershell
 Set-Location D:\bbbbbbbbbbb\store\online-mall-platform
